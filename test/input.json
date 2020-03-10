@@ -1,0 +1,91 @@
+{
+    "rbac": [
+        {
+            "apiVersion": "rbac.authorization.k8s.io/v1",
+            "kind": "ClusterRole",
+            "metadata": {
+                "annotations": {
+                    "rbac.authorization.kubernetes.io/autoupdate": "true"
+                },
+                "creationTimestamp": "2020-02-19T15:07:33Z",
+                "labels": {
+                    "kubernetes.io/bootstrapping": "rbac-defaults"
+                },
+                "name": "cluster-admin"
+            },
+            "rules": [
+                {
+                    "apiGroups": [
+                        "*"
+                    ],
+                    "resources": [
+                        "*"
+                    ],
+                    "verbs": [
+                        "*"
+                    ]
+                },
+                {
+                    "nonResourceURLs": [
+                        "*"
+                    ],
+                    "verbs": [
+                        "*"
+                    ]
+                }
+            ]
+        }
+    ],
+    "topology": [
+        [
+            {
+                "type": "managednodegroup",
+                "role": "arn:aws:iam::123456789012:role/example-nodegroup-defaultn-NodeInstanceRole-123456ABCDEF",
+                "policy": [
+                    {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                            {
+                                "Action": [
+                                    "ec2:DescribeInstances",
+                                    "ec2:DescribeRouteTables",
+                                    "ec2:DescribeSecurityGroups",
+                                    "ec2:DescribeSubnets",
+                                    "ec2:DescribeVolumes",
+                                    "ec2:DescribeVolumesModifications",
+                                    "ec2:DescribeVpcs",
+                                    "eks:DescribeCluster"
+                                ],
+                                "Resource": "*",
+                                "Effect": "Allow"
+                            }
+                        ]
+                    },
+                    {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                            {
+                                "Effect": "Allow",
+                                "Action": [
+                                    "ecr:GetAuthorizationToken",
+                                    "ecr:BatchCheckLayerAvailability",
+                                    "ecr:GetDownloadUrlForLayer",
+                                    "ecr:GetRepositoryPolicy",
+                                    "ecr:DescribeRepositories",
+                                    "ecr:ListImages",
+                                    "ecr:DescribeImages",
+                                    "ecr:BatchGetImage",
+                                    "ecr:GetLifecyclePolicy",
+                                    "ecr:GetLifecyclePolicyPreview",
+                                    "ecr:ListTagsForResource",
+                                    "ecr:DescribeImageScanFindings"
+                                ],
+                                "Resource": "*"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    ]
+}
