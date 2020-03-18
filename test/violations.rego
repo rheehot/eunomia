@@ -1,5 +1,6 @@
 package violations.eunomia.testing
 
+# what is a cluster role
 rbac_cluster_role[msg] {
   some i
   rbackind := input.rbac[i].kind
