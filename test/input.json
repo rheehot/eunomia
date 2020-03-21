@@ -88,9 +88,15 @@
         },
         {
             "type": "pod",
+            "owner": "coredns",
             "name": "coredns-6658f9f447-kpq9s",
             "namespace": "kube-system",
             "hostrole": "arn:aws:iam::123456789012:role/example-nodegroup-defaultn-NodeInstanceRole-123456ABCDEF"
+        },
+        {
+            "type": "deployment",
+            "name": "coredns",
+            "namespace": "kube-system"
         }
     ]
 }
