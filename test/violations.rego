@@ -1,16 +1,16 @@
 package violations.eunomia.testing
 
-rbac_cluster_role[msg] {
+# checks if something is a cluster role
+k8s_cluster_role[{name}] {
   some i
-  rbackind := input.rbac[i].kind
-  rbackname := input.rbac[i].metadata.name
-  rbackind == "ClusterRole"
-  msg := sprintf("Found cluster role '%v'", [rbackname])
+  kind := input.rbac[i].kind
+  name := input.rbac[i].metadata.name
+  kind == "ClusterRole"
 }
 
 # checks if a deploy (via its pods) runs on a group 
 # of nodes, taking the namespace of the deploy/pod into account
-runs_on[{deploy, ns, node}] {
+k8s_runs_on[{deploy, ns, node}] {
   some i, j, k
   pod := input.topology[j].name
   ns := input.topology[j].namespace
@@ -22,12 +22,12 @@ runs_on[{deploy, ns, node}] {
   input.topology[j].hostrole == input.topology[i].role
   # requires that there's a supervisor relation 
   # between the deploy and the pod:
-  supervisor
+  k8s_supervisor
 }
 
 # checks if the deploy is the pod's supervisor,
 # that is, there exists an ownership relation
-supervisor = {deploy, pod} {
+k8s_supervisor = {deploy, pod} {
  some i, j
  deploy := input.topology[j].name
  pod := input.topology[i].name
