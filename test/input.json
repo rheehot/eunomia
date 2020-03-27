@@ -38,8 +38,13 @@
     ],
     "topology": [
         {
-            "type": "nodes",
-            "name": "mng0",
+            "type": "nodegroup",
+            "name": "mng0"
+        },
+        {
+            "type": "node",
+            "memberof": "mng0",
+            "name": "worker123",
             "role": "arn:aws:iam::123456789012:role/example-nodegroup-defaultn-NodeInstanceRole-123456ABCDEF",
             "policy": [
                 {

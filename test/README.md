@@ -31,3 +31,17 @@ $ opa eval \
   ]
 }
 ```
+
+Or, testing EKS access regime:
+
+
+```
+$ opa eval --input input.json --data violations.rego --package dev.eunomia.eks --format pretty 'k8s_runs_on[{deploy, ns, node}]' 
+[
+  [
+    "coredns",
+    "kube-system",
+    "worker123"
+  ]
+]
+```
