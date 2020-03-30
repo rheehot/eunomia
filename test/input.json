@@ -38,7 +38,12 @@
     ],
     "topology": [
         {
+            "type": "cluster",
+            "name": "eks42"
+        },
+        {
             "type": "nodegroup",
+            "memberof": "eks42",
             "name": "mng0"
         },
         {

@@ -1,13 +1,17 @@
 package dev.eunomia.eks
 
 # a node is a member of a node group
-ec2_nodegroup_member[{ng, node}] {
-  some i, j
-  ng := input.topology[i].name
-  node := input.topology[j].name
-  input.topology[i].type == "nodegroup"
-  input.topology[j].type == "node"
-  input.topology[j].memberof == ng
+# which is a member of a cluster
+ec2_member[{cluster, node}] {
+  some i, j, k 
+  node := input.topology[i].name
+  ng := input.topology[j].name
+  cluster := input.topology[k].name
+  input.topology[i].type == "node"
+  input.topology[j].type == "nodegroup"
+  input.topology[k].type == "cluster"
+  input.topology[i].memberof == ng
+  input.topology[j].memberof == cluster
 }
 
 # a deploylment runs on a node (via its pods) 
@@ -25,7 +29,7 @@ k8s_runs_on[{deploy, ns, node}] {
   # requires that there's a supervisor relation 
   # between the deploy and the pod:
   k8s_supervisor
-  ec2_nodegroup_member
+  ec2_member
 }
 
 # checks if the deploy is the pod's supervisor,
