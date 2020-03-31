@@ -32,39 +32,50 @@ func main() {
 		log.Fatalln("Need a cluster to operate on to continue, sorry :(")
 	}
 	fmt.Printf("Checking cluster [%v] in [%v]\n", *cluster, *region)
-	svc := eks.New(session.New(&aws.Config{
-		Region: aws.String(*region),
-	}))
+	input := NewInput(*cluster)
+	addMNG(*region, *cluster, &input)
+	bc, err := json.MarshalIndent(input, "", " ")
+	if err != nil {
+		log.Fatalln(fmt.Sprintf("Can't serialize input: %v", err))
+	}
+	fmt.Println(string(bc))
+}
+
+// NewInput creates an input from scratch, setting only the cluster name
+func NewInput(cluster string) Input {
 	input := Input{
 		Topology: make([]interface{}, 1),
 		RBAC:     make([]interface{}, 1),
 	}
-	// cinfo, err := svc.DescribeCluster(&eks.DescribeClusterInput{
-	// 	Name: aws.String(*cluster),
-	// })
-	// if err != nil {
-	// 	log.Fatalln(fmt.Sprintf("Can't get cluster details: %v", err))
-	// }
 	input.Topology[0] = struct {
 		Type string `json:"type"`
 		Name string `json:"name"`
 	}{
 		"cluster",
-		*cluster,
+		cluster,
 	}
+	return input
+}
+
+// addMNG lists all managed nodegroups of a cluster in a region and
+// adds them as well as their nodes (EC2 instances) to the topology of the input
+func addMNG(region, cluster string, input *Input) error {
+	svc := eks.New(session.New(&aws.Config{
+		Region: aws.String(region),
+	}))
 	mngs, err := svc.ListNodegroups(&eks.ListNodegroupsInput{
-		ClusterName: aws.String(*cluster),
+		ClusterName: aws.String(cluster),
 	})
 	if err != nil {
-		log.Fatalln(fmt.Sprintf("Can't list managed node groups: %v", err))
+		return fmt.Errorf("Can't list managed node groups of cluster: %v", err)
 	}
 	for _, ng := range mngs.Nodegroups {
 		mnginfo, err := svc.DescribeNodegroup(&eks.DescribeNodegroupInput{
-			ClusterName:   aws.String(*cluster),
+			ClusterName:   aws.String(cluster),
 			NodegroupName: aws.String(*ng),
 		})
 		if err != nil {
-			log.Fatalln(fmt.Sprintf("Can't get managed node group details: %v", err))
+			return fmt.Errorf("Can't get details of managed node group %v : %v", *ng, err)
 		}
 		tmpng := struct {
 			Type       string `json:"type"`
@@ -72,13 +83,13 @@ func main() {
 			Name       string `json:"name"`
 		}{
 			"nodegroup",
-			*cluster,
+			cluster,
 			*ng,
 		}
 		input.Topology = append(input.Topology, tmpng)
-		nodes, err := listNodes(*region, *mnginfo.Nodegroup.Resources.AutoScalingGroups[0].Name)
+		nodes, err := listNodes(region, *mnginfo.Nodegroup.Resources.AutoScalingGroups[0].Name)
 		if err != nil {
-			log.Fatalln(fmt.Sprintf("Can't list nodes of managed node group: %v", err))
+			return fmt.Errorf("Can't list nodes of managed node group %v: %v", *ng, err)
 		}
 		for _, node := range nodes {
 			tmpnode := struct {
@@ -93,21 +104,18 @@ func main() {
 			input.Topology = append(input.Topology, tmpnode)
 		}
 	}
-	bc, err := json.MarshalIndent(input, "", " ")
-	if err != nil {
-		log.Fatalln(fmt.Sprintf("Can't serialize input: %v", err))
-	}
-	fmt.Println(string(bc))
+	return nil
 }
 
-func listNodes(region, asgname string) ([]string, error) {
+// listNodes returns the EC2 instance IDs of the nodes of an AutoScalingGroup
+func listNodes(region, asg string) ([]string, error) {
 	nodes := []string{}
 	svc := autoscaling.New(session.New(&aws.Config{
 		Region: aws.String(region),
 	}))
 	res, err := svc.DescribeAutoScalingGroups(&autoscaling.DescribeAutoScalingGroupsInput{
 		AutoScalingGroupNames: []*string{
-			aws.String(asgname),
+			aws.String(asg),
 		},
 	})
 	if err != nil {
