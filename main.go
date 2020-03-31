@@ -30,11 +30,12 @@ type Input struct {
 func main() {
 	cluster := flag.String("cluster", "", "The name of the cluster you want to check")
 	region := flag.String("region", "eu-west-1", "The name of the AWS region to use.")
+	rules := flag.String("rules", "", "The file path to the Rego rules to apply")
 	flag.Parse()
 	if *cluster == "" {
 		log.Fatalln("Need a cluster to operate on to continue, sorry :(")
 	}
-	log.Printf("Checking cluster [%v] in [%v]\n", *cluster, *region)
+	log.Printf("Checking cluster [%v] in [%v] against [%v]\n", *cluster, *region, *rules)
 	input := NewInput(*cluster)
 	addMNG(*region, *cluster, &input)
 	addDeploys(&input)
