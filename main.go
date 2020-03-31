@@ -9,7 +9,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
+	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
+
+	"github.com/mhausenblas/kubecuddler"
 )
 
 // Input is the Rego rules input, describing the
@@ -31,9 +34,10 @@ func main() {
 	if *cluster == "" {
 		log.Fatalln("Need a cluster to operate on to continue, sorry :(")
 	}
-	fmt.Printf("Checking cluster [%v] in [%v]\n", *cluster, *region)
+	log.Printf("Checking cluster [%v] in [%v]\n", *cluster, *region)
 	input := NewInput(*cluster)
 	addMNG(*region, *cluster, &input)
+	addDeploys(&input)
 	bc, err := json.MarshalIndent(input, "", " ")
 	if err != nil {
 		log.Fatalln(fmt.Sprintf("Can't serialize input: %v", err))
@@ -87,19 +91,21 @@ func addMNG(region, cluster string, input *Input) error {
 			*ng,
 		}
 		input.Topology = append(input.Topology, tmpng)
-		nodes, err := listNodes(region, *mnginfo.Nodegroup.Resources.AutoScalingGroups[0].Name)
+		nodes, ips, err := listNodes(region, *mnginfo.Nodegroup.Resources.AutoScalingGroups[0].Name)
 		if err != nil {
 			return fmt.Errorf("Can't list nodes of managed node group %v: %v", *ng, err)
 		}
 		for _, node := range nodes {
 			tmpnode := struct {
-				Type       string `json:"type"`
-				Membership string `json:"memberof"`
-				Name       string `json:"name"`
+				Type       string   `json:"type"`
+				Membership string   `json:"memberof"`
+				Name       string   `json:"name"`
+				IPs        []string `json:"ips"`
 			}{
 				"node",
 				*ng,
 				node,
+				ips[node],
 			}
 			input.Topology = append(input.Topology, tmpnode)
 		}
@@ -107,9 +113,12 @@ func addMNG(region, cluster string, input *Input) error {
 	return nil
 }
 
-// listNodes returns the EC2 instance IDs of the nodes of an AutoScalingGroup
-func listNodes(region, asg string) ([]string, error) {
+// listNodes returns the EC2 instance IDs and private IP addresses
+// of the nodes of an AutoScalingGroup
+func listNodes(region, asg string) ([]string, map[string][]string, error) {
 	nodes := []string{}
+	var ips map[string][]string
+	ips = make(map[string][]string)
 	svc := autoscaling.New(session.New(&aws.Config{
 		Region: aws.String(region),
 	}))
@@ -119,10 +128,56 @@ func listNodes(region, asg string) ([]string, error) {
 		},
 	})
 	if err != nil {
-		return nodes, err
+		return nodes, ips, err
 	}
 	for _, instance := range res.AutoScalingGroups[0].Instances {
 		nodes = append(nodes, *instance.InstanceId)
+		pIPs, err := listPrivateIPs(region, *instance.InstanceId)
+		if err != nil {
+			return nodes, ips, err
+		}
+		ips[*instance.InstanceId] = pIPs
 	}
-	return nodes, nil
+	return nodes, ips, nil
+}
+
+// listPrivateIPs returns the private IP addresses of an EC2 instance
+func listPrivateIPs(region, ec2instanceid string) ([]string, error) {
+	ips := []string{}
+	svc := ec2.New(session.New(&aws.Config{
+		Region: aws.String(region),
+	}))
+	res, err := svc.DescribeInstances(&ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("instance-id"),
+				Values: []*string{aws.String(ec2instanceid)},
+			},
+		},
+	})
+	if err != nil {
+		return ips, err
+	}
+	for _, reservation := range res.Reservations {
+		for _, instance := range reservation.Instances {
+			ips = append(ips, *instance.PrivateIpAddress)
+		}
+	}
+	return ips, nil
+}
+
+// addDeploys lists all deployments across all namespaces in the cluster
+// and adds them as well as their pods to the topology of the input
+func addDeploys(input *Input) error {
+	res, err := kubecuddler.Kubectl(true, false, "", "get", "deploy,rs,po", "--all-namespaces", "--output", "json")
+	if err != nil {
+		return err
+	}
+	var drp interface{}
+	err = json.Unmarshal([]byte(res), &drp)
+	if err != nil {
+		return err
+	}
+	input.Topology = append(input.Topology, drp)
+	return nil
 }
