@@ -4,29 +4,14 @@ import (
 	"flag"
 	"fmt"
 	"log"
-
-	iamutil "github.com/mhausenblas/eunomia/pkg/iamutil"
 )
 
 func main() {
-	iamfile := flag.String("iam", "", "The IAM policy file you want to use as an input")
-	rbacfile := flag.String("rbac", "", "The RBAC role file you want to use as an input")
+	cluster := flag.String("cluster", "", "The name of the cluster you want to check")
+	region := flag.String("region", "", "The name of the AWS region to use. If not provided, the default region will be used.")
 	flag.Parse()
-	if *iamfile == "" && *rbacfile == "" {
-		log.Fatalln("Need at least either an IAM policy file or RBAC role file to continue, sorry :(")
+	if *cluster == "" {
+		log.Fatalln("Need a cluster to operate on to continue, sorry :(")
 	}
-	regocontent := ""
-	if *iamfile != "" {
-		log.Printf("Parsing IAM file %v", *iamfile)
-		iamcontent, err := iamutil.DumpJSON(*iamfile)
-		if err != nil {
-			log.Fatalln(fmt.Sprintf("Can't parse IAM policy file: %v", err))
-		}
-		regocontent = iamcontent
-	}
-	if *rbacfile != "" {
-		log.Printf("Parsing RBAC file %v", *rbacfile)
-
-	}
-	fmt.Println(regocontent)
+	fmt.Println(*cluster, *region)
 }
