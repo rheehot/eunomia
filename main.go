@@ -95,18 +95,18 @@ func main() {
 	if err != nil {
 		log.Fatalln(fmt.Sprintf("Can't read rules: %v", err))
 	}
-	reg := rego.New(
-		rego.Query("dev.eunomia.eks.runs_on"),
+	query, err := rego.New(
+		rego.Query("node_pods = data.dev.eunomia.eks.runs_on"),
 		rego.Module("violations.rego", string(module)),
-		rego.Input(cs),
-	)
-	ctx := context.Background()
-	rs, err := reg.Eval(ctx)
+	).PrepareForEval(context.Background())
+	if err != nil {
+		log.Fatalln(fmt.Sprintf("Can't parse rules and/or data: %v", err))
+	}
+	results, err := query.Eval(context.Background(), rego.EvalInput(cs))
 	if err != nil {
 		log.Fatalln(fmt.Sprintf("Can't evaluate rules: %v", err))
 	}
-	result := fmt.Sprintf("%v\n", rs[0].Expressions[0])
-	fmt.Println(result)
+	fmt.Printf("%+v", results[0].Bindings["node_pods"])
 }
 
 // NewClusterState creates an input from scratch, setting only the cluster name
