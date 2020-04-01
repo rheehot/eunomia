@@ -21,18 +21,13 @@ tools, or combined IAM/RBAC visualizations.
 The input of the tool is an IAM policy and/or an RBAC role and the output a
 Rego representation of the combined input.
 
-## UX design
+## Usage
 
 ```sh
-$ ucnpl --iam test/iam/p000.json --rbac test/rbac/p000.yaml
-2020/03/04 15:41:37 Parsing IAM file test/iam/p001.json
-2020/03/04 15:41:38 Parsing RBAC file test/rbac/p000.yaml
-2020/03/04 15:41:38 Generating unified Rego model
-package unimodel123
-
-allow {
- ...
-}
+$ cat test/input.json | go run . --cluster appmeshga --rules test/violations.rego
+2020/04/01 11:14:57 Checking cluster [appmeshga] in [eu-west-1] using rules from [test/violations.rego]
+2020/04/01 11:14:57 Reading cluster state from stdin
+[map[node:i-00112233445566778 pod:appmesh-controller-6774f54fcc-d7rnd] map[node:i-00998877665544332 pod:appmesh-inject-7989448cdc-pjjmp] map[node:i-00112233445566778 pod:coredns-6658f9f447-kpq9s] map[node:i-00998877665544332 pod:coredns-6658f9f447-lfkn5]]
 ```
 
 ## Related
