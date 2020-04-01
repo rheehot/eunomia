@@ -1,23 +1,27 @@
 package main
 
 import (
+	"bufio"
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/eks"
+	"github.com/open-policy-agent/opa/rego"
 
 	"github.com/mhausenblas/kubecuddler"
 )
 
-// Input is the Rego rules input, describing the
-// EKS cluster topology and RBAC settings
-type Input struct {
+// ClusterState describes the EKS cluster topology and RBAC settings
+type ClusterState struct {
 	// Topology represents an EKS cluster with
 	// managed node groups & nodes as well as
 	// deployments and pods in it
@@ -31,40 +35,99 @@ func main() {
 	cluster := flag.String("cluster", "", "The name of the cluster you want to check")
 	region := flag.String("region", "eu-west-1", "The name of the AWS region to use.")
 	rules := flag.String("rules", "", "The file path to the Rego rules to apply")
+	outputcs := flag.Bool("dump-state", false, "If set, output the cluster state as a JSON blob")
+
 	flag.Parse()
 	if *cluster == "" {
 		log.Fatalln("Need a cluster to operate on to continue, sorry :(")
 	}
-	log.Printf("Checking cluster [%v] in [%v] against [%v]\n", *cluster, *region, *rules)
-	input := NewInput(*cluster)
-	addMNG(*region, *cluster, &input)
-	addDeploys(&input)
-	bc, err := json.MarshalIndent(input, "", " ")
-	if err != nil {
-		log.Fatalln(fmt.Sprintf("Can't serialize input: %v", err))
+	log.Printf("Checking cluster [%v] in [%v] using rules from [%v]\n", *cluster, *region, *rules)
+
+	var clusterstateraw string
+	// let's check if we have JSON cluster state via stdin:
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			clusterstateraw += scanner.Text() + "\n"
+		}
+		if scanner.Err() != nil {
+			log.Fatalln(fmt.Sprintf("Can't read cluster state from stdin: %v", scanner.Err().Error()))
+		}
 	}
-	fmt.Println(string(bc))
+	cs := NewClusterState(*cluster)
+	switch {
+	// no cluster state provided via stdin, need to establish the
+	// state by querying the EKS, EC2 and Kubernetes API:
+	case clusterstateraw == "":
+		log.Printf("Establishing cluster state by querying AWS and Kubernetes APIs, this may take some time")
+		// add node groups and nodes:
+		err := addMNG(*region, *cluster, &cs)
+		if err != nil {
+			log.Fatalln(fmt.Sprintf("Can't query EKS and EC2 APIs: %v", err))
+		}
+		// add deployments and pods:
+		err = addDeploys(&cs)
+		if err != nil {
+			log.Fatalln(fmt.Sprintf("Can't query Kubernetes: %v", err))
+		}
+	// add RBAC settings:
+	// cluster state provided via stdin, so parse it:
+	default:
+		log.Printf("Reading cluster state from stdin")
+		err := json.Unmarshal([]byte(clusterstateraw), &cs)
+		if err != nil {
+			log.Fatalln(fmt.Sprintf("Can't parse cluster state input: %v", err))
+		}
+	}
+
+	// output cluster state if asked
+	if *outputcs {
+		bc, err := json.MarshalIndent(cs, "", " ")
+		if err != nil {
+			log.Fatalln(fmt.Sprintf("Can't serialize input: %v", err))
+		}
+		fmt.Println(string(bc))
+	}
+
+	// apply rules
+	module, err := ioutil.ReadFile(*rules)
+	if err != nil {
+		log.Fatalln(fmt.Sprintf("Can't read rules: %v", err))
+	}
+	reg := rego.New(
+		rego.Query("dev.eunomia.eks.runs_on"),
+		rego.Module("violations.rego", string(module)),
+		rego.Input(cs),
+	)
+	ctx := context.Background()
+	rs, err := reg.Eval(ctx)
+	if err != nil {
+		log.Fatalln(fmt.Sprintf("Can't evaluate rules: %v", err))
+	}
+	result := fmt.Sprintf("%v\n", rs[0].Expressions[0])
+	fmt.Println(result)
 }
 
-// NewInput creates an input from scratch, setting only the cluster name
-func NewInput(cluster string) Input {
-	input := Input{
+// NewClusterState creates an input from scratch, setting only the cluster name
+func NewClusterState(cluster string) ClusterState {
+	cs := ClusterState{
 		Topology: make([]interface{}, 1),
 		RBAC:     make([]interface{}, 1),
 	}
-	input.Topology[0] = struct {
+	cs.Topology[0] = struct {
 		Type string `json:"type"`
 		Name string `json:"name"`
 	}{
 		"cluster",
 		cluster,
 	}
-	return input
+	return cs
 }
 
 // addMNG lists all managed nodegroups of a cluster in a region and
-// adds them as well as their nodes (EC2 instances) to the topology of the input
-func addMNG(region, cluster string, input *Input) error {
+// adds them as well as their nodes (EC2 instances) to the topology
+func addMNG(region, cluster string, cs *ClusterState) error {
 	svc := eks.New(session.New(&aws.Config{
 		Region: aws.String(region),
 	}))
@@ -91,7 +154,7 @@ func addMNG(region, cluster string, input *Input) error {
 			cluster,
 			*ng,
 		}
-		input.Topology = append(input.Topology, tmpng)
+		cs.Topology = append(cs.Topology, tmpng)
 		nodes, ips, err := listNodes(region, *mnginfo.Nodegroup.Resources.AutoScalingGroups[0].Name)
 		if err != nil {
 			return fmt.Errorf("Can't list nodes of managed node group %v: %v", *ng, err)
@@ -108,7 +171,7 @@ func addMNG(region, cluster string, input *Input) error {
 				node,
 				ips[node],
 			}
-			input.Topology = append(input.Topology, tmpnode)
+			cs.Topology = append(cs.Topology, tmpnode)
 		}
 	}
 	return nil
@@ -169,7 +232,7 @@ func listPrivateIPs(region, ec2instanceid string) ([]string, error) {
 
 // addDeploys lists all deployments across all namespaces in the cluster
 // and adds them as well as their pods to the topology of the input
-func addDeploys(input *Input) error {
+func addDeploys(cs *ClusterState) error {
 	res, err := kubecuddler.Kubectl(true, false, "", "get", "deploy,rs,po", "--all-namespaces", "--output", "json")
 	if err != nil {
 		return err
@@ -179,6 +242,6 @@ func addDeploys(input *Input) error {
 	if err != nil {
 		return err
 	}
-	input.Topology = append(input.Topology, drp)
+	cs.Topology = append(cs.Topology, drp)
 	return nil
 }
