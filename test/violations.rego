@@ -4,7 +4,11 @@ package dev.eunomia.eks
 ################################################################################
 # Access control: what identities and permissions exist in the Kubernetes 
 # cluster (via RBAC) and what is defined from the AWS services side (IAM)
-
+permits[{"serviceaccount" : sa}] {
+	some i
+	input.rbac[_].items[i].kind == "ServiceAccount"
+    sa := input.rbac[_].items[i].metadata.name
+}
 
 
 ################################################################################
