@@ -4,10 +4,15 @@ package dev.eunomia.eks
 ################################################################################
 # Access control: what identities and permissions exist in the Kubernetes 
 # cluster (via RBAC) and what is defined from the AWS services side (IAM)
-permits[{"serviceaccount" : sa}] {
-	some i
-	input.rbac[_].items[i].kind == "ServiceAccount"
-    sa := input.rbac[_].items[i].metadata.name
+permits[{"roletype" : roles[rt], "rolebinding" : rb, "serviceaccount" : sa}] {
+  some i, j, k, rt 
+  input.rbac[_].items[i].kind == "ServiceAccount"
+  sa := input.rbac[_].items[i].metadata.name
+  roles := ["RoleBinding", "ClusterRoleBinding"]
+  input.rbac[_].items[j].kind == roles[rt]
+  input.rbac[_].items[j].subjects[k].kind == "ServiceAccount"
+  input.rbac[_].items[j].subjects[k].name == sa
+  rb := input.rbac[_].items[j].metadata.name
 }
 
 
