@@ -1,6 +1,18 @@
 package dev.eunomia.eks
 
 
+################################################################################
+# Access control: what identities and permissions exist in the Kubernetes 
+# cluster (via RBAC) and what is defined from the AWS services side (IAM)
+
+
+
+################################################################################
+# Topology: how pods/deployments (Kubernetes API) on the one side, and 
+# nodes (EC2 instances)/node groups/cluster (EC2/EKS API) on the other side
+# are connected.
+
+
 # a pod (of a replica set, part et of a deployment) runs on a node 
 runs_on[{"pod": pod, "node": node}] {
   some i, j, k
