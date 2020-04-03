@@ -4,15 +4,23 @@ package dev.eunomia.eks
 ################################################################################
 # Access control: what identities and permissions exist in the Kubernetes 
 # cluster (via RBAC) and what is defined from the AWS services side (IAM)
-permits[{"roletype" : roles[rt], "rolebinding" : rb, "serviceaccount" : sa}] {
-  some i, j, k, rt 
+
+# a (cluster)role binding gives the service account (and with it the app it)
+# stands for certain permissions as defined by the (cluster)role it references
+permits[{"bindingtype" : rolebindings[rbt], "rolebinding" : rb, "roletype" : roles[rt], "role":  rl, "serviceaccount" : sa}] {
+  some i, j, k, l, rbt, rt
   input.rbac[_].items[i].kind == "ServiceAccount"
   sa := input.rbac[_].items[i].metadata.name
-  roles := ["RoleBinding", "ClusterRoleBinding"]
-  input.rbac[_].items[j].kind == roles[rt]
+  
+  rolebindings := ["RoleBinding", "ClusterRoleBinding"]
+  input.rbac[_].items[j].kind == rolebindings[rbt]
   input.rbac[_].items[j].subjects[k].kind == "ServiceAccount"
   input.rbac[_].items[j].subjects[k].name == sa
   rb := input.rbac[_].items[j].metadata.name
+
+  roles := ["Role", "ClusterRole"]
+  input.rbac[_].items[l].kind == roles[rt]
+  rl := input.rbac[_].items[l].metadata.name
 }
 
 
@@ -20,7 +28,6 @@ permits[{"roletype" : roles[rt], "rolebinding" : rb, "serviceaccount" : sa}] {
 # Topology: how pods/deployments (Kubernetes API) on the one side, and 
 # nodes (EC2 instances)/node groups/cluster (EC2/EKS API) on the other side
 # are connected.
-
 
 # a pod (of a replica set, part et of a deployment) runs on a node 
 runs_on[{"pod": pod, "node": node}] {
