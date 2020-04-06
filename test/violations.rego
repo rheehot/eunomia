@@ -5,6 +5,19 @@ package dev.eunomia.eks
 # Access control: what identities and permissions exist in the Kubernetes 
 # cluster (via RBAC) and what is defined from the AWS services side (IAM)
 
+# a pod uses a service account
+uses[{"pod": pod, "serviceaccount": sa }] {
+  some i, j
+  
+  input.topology[_].items[i].kind == "Pod"
+  pod := input.topology[_].items[i].metadata.name
+
+  input.rbac[_].items[j].kind == "ServiceAccount"
+  sa := input.rbac[_].items[j].metadata.name
+}
+
+
+
 # a (cluster)role binding gives the service account (and with it the app it)
 # stands for certain permissions as defined by the (cluster)role it references
 permits[{"bindingtype" : rolebindings[rbt], "rolebinding" : rb, "roletype" : roles[rt], "role":  rl, "serviceaccount" : sa}] {
