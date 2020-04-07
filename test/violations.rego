@@ -61,6 +61,24 @@ runs_on[{"pod": pod, "node": node}] {
   node := hosts_pod(hostIP)
 }
 
+
+# a deployment supervises a collection of pods (via a replica set)
+supervises[{"deployment": deploy, "pods": pod}] {
+  some i, j
+  
+  input.topology[_].items[i].kind == "Pod"
+  pod := input.topology[_].items[i].metadata.name
+  rs := input.topology[_].items[i].metadata.ownerReferences[_].name
+
+  input.topology[_].items[j].kind == "ReplicaSet"
+  input.topology[_].items[j].metadata.name == rs
+  deploy := input.topology[_].items[j].metadata.ownerReferences[_].name
+  
+  input.topology[_].items[k].kind == "Deployment"
+  input.topology[_].items[k].metadata.name == deploy
+}
+
+
 # a node (EC2 instance) hosts a pod iff the status of the pod has 
 # host IP equal to one of the private IPs of the node (EC2 instance)
 hosts_pod(hostIP) = node {
