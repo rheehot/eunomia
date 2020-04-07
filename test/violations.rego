@@ -42,29 +42,21 @@ permits[{"bindingtype" : rolebindings[rbt], "rolebinding" : rb, "roletype" : rol
 # nodes (EC2 instances)/node groups/cluster (EC2/EKS API) on the other side
 # are connected.
 
-# a pod (of a replica set, part et of a deployment) runs on a node 
+# a pod runs on a node 
 runs_on[{"pod": pod, "node": node}] {
-  some i, j, k
+  some i
   
   input.topology[_].items[i].kind == "Pod"
   hostIP := input.topology[_].items[i].status.hostIP
-  pod := input.topology[_].items[i].metadata.name
-  rs := input.topology[_].items[i].metadata.ownerReferences[_].name
+  pod := input.topology[_].items[i].metadata.nam
 
-  input.topology[_].items[j].kind == "ReplicaSet"
-  input.topology[_].items[j].metadata.name == rs
-  deploy := input.topology[_].items[j].metadata.ownerReferences[_].name
-  
-  input.topology[_].items[k].kind == "Deployment"
-  input.topology[_].items[k].metadata.name == deploy
-  
   node := hosts_pod(hostIP)
 }
 
 
 # a deployment supervises a collection of pods (via a replica set)
 supervises[{"deployment": deploy, "pods": pod}] {
-  some i, j
+  some i, j, k
   
   input.topology[_].items[i].kind == "Pod"
   pod := input.topology[_].items[i].metadata.name
