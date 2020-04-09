@@ -6,16 +6,27 @@ package dev.eunomia.eks
 # cluster (via RBAC) and what is defined from the AWS services side (IAM)
 
 # a pod uses a service account
-uses[{"pod": pod, "serviceaccount": sa }] {
-  some i, j
+# todo: split into incremental definitions, for each type of owner
+uses[{"namespace": ns, "owner": owner, "serviceaccount": sa }] {
+  some k
+
+  input.rbac[_].items[s].kind == "ServiceAccount"
+  sa := input.rbac[_].items[s].metadata.name
+  ns := input.rbac[_].items[s].metadata.namespace
+
+  # input.topology[_].items[i].kind == "Pod"
+  # pod := input.topology[_].items[i].metadata.name
+  # input.topology[_].items[i].metadata.namespace == ns
+  # rs := input.topology[_].items[i].metadata.ownerReferences[_].name
+
+  # input.topology[_].items[j].kind == "ReplicaSet"
+  # input.topology[_].items[j].metadata.name == rs
+  # deploy := input.topology[_].items[j].metadata.ownerReferences[_].name
   
-  input.topology[_].items[i].kind == "Pod"
-  pod := input.topology[_].items[i].metadata.name
-
-  input.rbac[_].items[j].kind == "ServiceAccount"
-  sa := input.rbac[_].items[j].metadata.name
+  owners := ["Deployment", "Daemonset", "StatefulSet"]
+  input.topology[_].items[k].kind == owners[_]
+  owner := input.topology[_].items[k].metadata.name
 }
-
 
 
 # a (cluster)role binding gives the service account (and with it the app it)
@@ -43,33 +54,16 @@ permits[{"bindingtype" : rolebindings[rbt], "rolebinding" : rb, "roletype" : rol
 # are connected.
 
 # a pod runs on a node 
-runs_on[{"pod": pod, "node": node}] {
+runs_on[{"namespace": ns, "pod": pod, "node": node}] {
   some i
   
   input.topology[_].items[i].kind == "Pod"
   hostIP := input.topology[_].items[i].status.hostIP
-  pod := input.topology[_].items[i].metadata.nam
+  pod := input.topology[_].items[i].metadata.name
+  ns := input.topology[_].items[i].metadata.namespace
 
   node := hosts_pod(hostIP)
 }
-
-
-# a deployment supervises a collection of pods (via a replica set)
-supervises[{"deployment": deploy, "pods": pod}] {
-  some i, j, k
-  
-  input.topology[_].items[i].kind == "Pod"
-  pod := input.topology[_].items[i].metadata.name
-  rs := input.topology[_].items[i].metadata.ownerReferences[_].name
-
-  input.topology[_].items[j].kind == "ReplicaSet"
-  input.topology[_].items[j].metadata.name == rs
-  deploy := input.topology[_].items[j].metadata.ownerReferences[_].name
-  
-  input.topology[_].items[k].kind == "Deployment"
-  input.topology[_].items[k].metadata.name == deploy
-}
-
 
 # a node (EC2 instance) hosts a pod iff the status of the pod has 
 # host IP equal to one of the private IPs of the node (EC2 instance)
