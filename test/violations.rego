@@ -5,29 +5,45 @@ package dev.eunomia.eks
 # Access control: what identities and permissions exist in the Kubernetes 
 # cluster (via RBAC) and what is defined from the AWS services side (IAM)
 
-# a pod uses a service account
-# todo: split into incremental definitions, for each type of owner
-uses[{"namespace": ns, "owner": owner, "serviceaccount": sa }] {
-  some k
+# a pod of a deployment uses a service account
+uses[{"namespace": ns, "pod": pod, "type": "deployment", "serviceaccount": sa }] {
+  some i,   s
 
   input.rbac[_].items[s].kind == "ServiceAccount"
   sa := input.rbac[_].items[s].metadata.name
   ns := input.rbac[_].items[s].metadata.namespace
 
-  # input.topology[_].items[i].kind == "Pod"
-  # pod := input.topology[_].items[i].metadata.name
-  # input.topology[_].items[i].metadata.namespace == ns
-  # rs := input.topology[_].items[i].metadata.ownerReferences[_].name
+  input.topology[_].items[i].kind == "Pod"
+  pod := input.topology[_].items[i].metadata.name
+  input.topology[_].items[i].metadata.namespace == ns
+  rs := input.topology[_].items[i].metadata.ownerReferences[_].name
 
   # input.topology[_].items[j].kind == "ReplicaSet"
   # input.topology[_].items[j].metadata.name == rs
   # deploy := input.topology[_].items[j].metadata.ownerReferences[_].name
   
-  owners := ["Deployment", "Daemonset", "StatefulSet"]
-  input.topology[_].items[k].kind == owners[_]
-  owner := input.topology[_].items[k].metadata.name
+  # input.topology[_].items[k].kind == "Deployment"
+  # input.topology[_].items[k].metadata.name == deploy
+  # input.topology[_].items[k].spec.template.spec.serviceAccountName == sa
 }
 
+# a pod of a daemonset uses a service account
+auses[{"namespace": ns, "owner": ds, "type": "daemonset", "serviceaccount": sa }] {
+  some i, j, s
+
+  input.rbac[_].items[s].kind == "ServiceAccount"
+  sa := input.rbac[_].items[s].metadata.name
+  ns := input.rbac[_].items[s].metadata.namespace
+
+  input.topology[_].items[i].kind == "Pod"
+  pod := input.topology[_].items[i].metadata.name
+  input.topology[_].items[i].metadata.namespace == ns
+  ds := input.topology[_].items[i].metadata.ownerReferences[_].name
+  
+  input.topology[_].items[j].kind == "DaemonSet"
+  input.topology[_].items[j].metadata.name == ds
+  input.topology[_].items[j].spec.template.spec.serviceAccountName == sa
+}
 
 # a (cluster)role binding gives the service account (and with it the app it)
 # stands for certain permissions as defined by the (cluster)role it references
