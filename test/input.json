@@ -8650,6 +8650,530 @@
                 },
                 {
                     "apiVersion": "extensions/v1beta1",
+                    "kind": "ReplicaSet",
+                    "metadata": {
+                        "annotations": {
+                            "deployment.kubernetes.io/desired-replicas": "1",
+                            "deployment.kubernetes.io/max-replicas": "2",
+                            "deployment.kubernetes.io/revision": "1"
+                        },
+                        "creationTimestamp": "2020-03-17T12:31:51Z",
+                        "generation": 1,
+                        "labels": {
+                            "app.kubernetes.io/instance": "appmesh-controller",
+                            "app.kubernetes.io/name": "appmesh-controller",
+                            "app.kubernetes.io/part-of": "appmesh",
+                            "pod-template-hash": "6774f54fcc"
+                        },
+                        "name": "appmesh-controller-6774f54fcc",
+                        "namespace": "appmesh-system",
+                        "ownerReferences": [
+                            {
+                                "apiVersion": "apps/v1",
+                                "blockOwnerDeletion": true,
+                                "controller": true,
+                                "kind": "Deployment",
+                                "name": "appmesh-controller",
+                                "uid": "db1aaeba-f0f9-48b6-bc98-4e1a4dc96d36"
+                            }
+                        ],
+                        "resourceVersion": "2405",
+                        "selfLink": "/apis/extensions/v1beta1/namespaces/appmesh-system/replicasets/appmesh-controller-6774f54fcc",
+                        "uid": "32ed0949-5677-4756-96f0-92c013cc6721"
+                    },
+                    "spec": {
+                        "replicas": 1,
+                        "selector": {
+                            "matchLabels": {
+                                "app.kubernetes.io/instance": "appmesh-controller",
+                                "app.kubernetes.io/name": "appmesh-controller",
+                                "pod-template-hash": "6774f54fcc"
+                            }
+                        },
+                        "template": {
+                            "metadata": {
+                                "annotations": {
+                                    "prometheus.io/scrape": "true"
+                                },
+                                "creationTimestamp": null,
+                                "labels": {
+                                    "app.kubernetes.io/instance": "appmesh-controller",
+                                    "app.kubernetes.io/name": "appmesh-controller",
+                                    "app.kubernetes.io/part-of": "appmesh",
+                                    "pod-template-hash": "6774f54fcc"
+                                }
+                            },
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "command": [
+                                            "/bin/app-mesh-controller",
+                                            "--v=0"
+                                        ],
+                                        "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon/app-mesh-controller:v0.4.0",
+                                        "imagePullPolicy": "IfNotPresent",
+                                        "livenessProbe": {
+                                            "exec": {
+                                                "command": [
+                                                    "curl",
+                                                    "-s",
+                                                    "http://localhost:10555/healthz"
+                                                ]
+                                            },
+                                            "failureThreshold": 3,
+                                            "periodSeconds": 10,
+                                            "successThreshold": 1,
+                                            "timeoutSeconds": 1
+                                        },
+                                        "name": "appmesh-controller",
+                                        "ports": [
+                                            {
+                                                "containerPort": 10555,
+                                                "name": "http",
+                                                "protocol": "TCP"
+                                            }
+                                        ],
+                                        "readinessProbe": {
+                                            "exec": {
+                                                "command": [
+                                                    "curl",
+                                                    "-s",
+                                                    "http://localhost:10555/healthz"
+                                                ]
+                                            },
+                                            "failureThreshold": 3,
+                                            "periodSeconds": 10,
+                                            "successThreshold": 1,
+                                            "timeoutSeconds": 1
+                                        },
+                                        "resources": {
+                                            "limits": {
+                                                "cpu": "2",
+                                                "memory": "1Gi"
+                                            },
+                                            "requests": {
+                                                "cpu": "100m",
+                                                "memory": "64Mi"
+                                            }
+                                        },
+                                        "terminationMessagePath": "/dev/termination-log",
+                                        "terminationMessagePolicy": "File"
+                                    }
+                                ],
+                                "dnsPolicy": "ClusterFirst",
+                                "restartPolicy": "Always",
+                                "schedulerName": "default-scheduler",
+                                "securityContext": {},
+                                "serviceAccount": "appmesh-controller",
+                                "serviceAccountName": "appmesh-controller",
+                                "terminationGracePeriodSeconds": 30
+                            }
+                        }
+                    },
+                    "status": {
+                        "availableReplicas": 1,
+                        "fullyLabeledReplicas": 1,
+                        "observedGeneration": 1,
+                        "readyReplicas": 1,
+                        "replicas": 1
+                    }
+                },
+                {
+                    "apiVersion": "extensions/v1beta1",
+                    "kind": "ReplicaSet",
+                    "metadata": {
+                        "annotations": {
+                            "deployment.kubernetes.io/desired-replicas": "1",
+                            "deployment.kubernetes.io/max-replicas": "2",
+                            "deployment.kubernetes.io/revision": "1"
+                        },
+                        "creationTimestamp": "2020-03-17T12:33:08Z",
+                        "generation": 1,
+                        "labels": {
+                            "app.kubernetes.io/instance": "appmesh-inject",
+                            "app.kubernetes.io/name": "appmesh-inject",
+                            "app.kubernetes.io/part-of": "appmesh",
+                            "pod-template-hash": "7989448cdc"
+                        },
+                        "name": "appmesh-inject-7989448cdc",
+                        "namespace": "appmesh-system",
+                        "ownerReferences": [
+                            {
+                                "apiVersion": "apps/v1",
+                                "blockOwnerDeletion": true,
+                                "controller": true,
+                                "kind": "Deployment",
+                                "name": "appmesh-inject",
+                                "uid": "5919ac94-e91e-4863-ae1b-92bedb0b5df2"
+                            }
+                        ],
+                        "resourceVersion": "2558",
+                        "selfLink": "/apis/extensions/v1beta1/namespaces/appmesh-system/replicasets/appmesh-inject-7989448cdc",
+                        "uid": "22c0be05-bb52-4c68-b9b6-57a79f129423"
+                    },
+                    "spec": {
+                        "replicas": 1,
+                        "selector": {
+                            "matchLabels": {
+                                "app.kubernetes.io/instance": "appmesh-inject",
+                                "app.kubernetes.io/name": "appmesh-inject",
+                                "pod-template-hash": "7989448cdc"
+                            }
+                        },
+                        "template": {
+                            "metadata": {
+                                "annotations": {
+                                    "prometheus.io/scrape": "false"
+                                },
+                                "creationTimestamp": null,
+                                "labels": {
+                                    "app.kubernetes.io/instance": "appmesh-inject",
+                                    "app.kubernetes.io/name": "appmesh-inject",
+                                    "app.kubernetes.io/part-of": "appmesh",
+                                    "pod-template-hash": "7989448cdc"
+                                }
+                            },
+                            "spec": {
+                                "containers": [
+                                    {
+                                        "command": [
+                                            "./appmeshinject",
+                                            "-sidecar-image=840364872350.dkr.ecr.us-west-2.amazonaws.com/aws-appmesh-envoy:v1.12.2.1-prod",
+                                            "-sidecar-cpu-requests=10m",
+                                            "-sidecar-memory-requests=32Mi",
+                                            "-init-image=111345817488.dkr.ecr.us-west-2.amazonaws.com/aws-appmesh-proxy-route-manager:v2",
+                                            "-enable-stats-tags=false",
+                                            "-enable-statsd=false"
+                                        ],
+                                        "env": [
+                                            {
+                                                "name": "APPMESH_NAME",
+                                                "value": "global"
+                                            },
+                                            {
+                                                "name": "APPMESH_LOG_LEVEL",
+                                                "value": "info"
+                                            }
+                                        ],
+                                        "image": "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-app-mesh-inject:v0.4.0",
+                                        "imagePullPolicy": "IfNotPresent",
+                                        "livenessProbe": {
+                                            "failureThreshold": 3,
+                                            "httpGet": {
+                                                "path": "/healthz",
+                                                "port": "https",
+                                                "scheme": "HTTPS"
+                                            },
+                                            "periodSeconds": 10,
+                                            "successThreshold": 1,
+                                            "timeoutSeconds": 1
+                                        },
+                                        "name": "appmesh-inject",
+                                        "ports": [
+                                            {
+                                                "containerPort": 8080,
+                                                "name": "https",
+                                                "protocol": "TCP"
+                                            }
+                                        ],
+                                        "readinessProbe": {
+                                            "failureThreshold": 3,
+                                            "httpGet": {
+                                                "path": "/healthz",
+                                                "port": "https",
+                                                "scheme": "HTTPS"
+                                            },
+                                            "periodSeconds": 10,
+                                            "successThreshold": 1,
+                                            "timeoutSeconds": 1
+                                        },
+                                        "resources": {
+                                            "limits": {
+                                                "cpu": "500m",
+                                                "memory": "512Mi"
+                                            },
+                                            "requests": {
+                                                "cpu": "100m",
+                                                "memory": "64Mi"
+                                            }
+                                        },
+                                        "securityContext": {
+                                            "readOnlyRootFilesystem": true
+                                        },
+                                        "terminationMessagePath": "/dev/termination-log",
+                                        "terminationMessagePolicy": "File",
+                                        "volumeMounts": [
+                                            {
+                                                "mountPath": "/etc/webhook/certs",
+                                                "name": "certs",
+                                                "readOnly": true
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "dnsPolicy": "ClusterFirst",
+                                "restartPolicy": "Always",
+                                "schedulerName": "default-scheduler",
+                                "securityContext": {},
+                                "serviceAccount": "appmesh-inject",
+                                "serviceAccountName": "appmesh-inject",
+                                "terminationGracePeriodSeconds": 30,
+                                "volumes": [
+                                    {
+                                        "name": "certs",
+                                        "secret": {
+                                            "defaultMode": 420,
+                                            "secretName": "appmesh-inject"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "status": {
+                        "availableReplicas": 1,
+                        "fullyLabeledReplicas": 1,
+                        "observedGeneration": 1,
+                        "readyReplicas": 1,
+                        "replicas": 1
+                    }
+                },
+                {
+                    "apiVersion": "extensions/v1beta1",
+                    "kind": "ReplicaSet",
+                    "metadata": {
+                        "annotations": {
+                            "deployment.kubernetes.io/desired-replicas": "2",
+                            "deployment.kubernetes.io/max-replicas": "3",
+                            "deployment.kubernetes.io/revision": "1"
+                        },
+                        "creationTimestamp": "2020-03-17T12:12:02Z",
+                        "generation": 1,
+                        "labels": {
+                            "eks.amazonaws.com/component": "coredns",
+                            "k8s-app": "kube-dns",
+                            "pod-template-hash": "6658f9f447"
+                        },
+                        "name": "coredns-6658f9f447",
+                        "namespace": "kube-system",
+                        "ownerReferences": [
+                            {
+                                "apiVersion": "apps/v1",
+                                "blockOwnerDeletion": true,
+                                "controller": true,
+                                "kind": "Deployment",
+                                "name": "coredns",
+                                "uid": "c7528183-6aca-4f32-a9f3-c9279254da5b"
+                            }
+                        ],
+                        "resourceVersion": "844",
+                        "selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/replicasets/coredns-6658f9f447",
+                        "uid": "8e2b6216-f54e-414c-b3ba-0c3e1a8edbec"
+                    },
+                    "spec": {
+                        "replicas": 2,
+                        "selector": {
+                            "matchLabels": {
+                                "eks.amazonaws.com/component": "coredns",
+                                "k8s-app": "kube-dns",
+                                "pod-template-hash": "6658f9f447"
+                            }
+                        },
+                        "template": {
+                            "metadata": {
+                                "annotations": {
+                                    "eks.amazonaws.com/compute-type": "ec2"
+                                },
+                                "creationTimestamp": null,
+                                "labels": {
+                                    "eks.amazonaws.com/component": "coredns",
+                                    "k8s-app": "kube-dns",
+                                    "pod-template-hash": "6658f9f447"
+                                }
+                            },
+                            "spec": {
+                                "affinity": {
+                                    "nodeAffinity": {
+                                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                                            "nodeSelectorTerms": [
+                                                {
+                                                    "matchExpressions": [
+                                                        {
+                                                            "key": "beta.kubernetes.io/os",
+                                                            "operator": "In",
+                                                            "values": [
+                                                                "linux"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "key": "beta.kubernetes.io/arch",
+                                                            "operator": "In",
+                                                            "values": [
+                                                                "amd64"
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "podAntiAffinity": {
+                                        "preferredDuringSchedulingIgnoredDuringExecution": [
+                                            {
+                                                "podAffinityTerm": {
+                                                    "labelSelector": {
+                                                        "matchExpressions": [
+                                                            {
+                                                                "key": "k8s-app",
+                                                                "operator": "In",
+                                                                "values": [
+                                                                    "kube-dns"
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    "topologyKey": "kubernetes.io/hostname"
+                                                },
+                                                "weight": 100
+                                            }
+                                        ]
+                                    }
+                                },
+                                "containers": [
+                                    {
+                                        "args": [
+                                            "-conf",
+                                            "/etc/coredns/Corefile"
+                                        ],
+                                        "image": "602401143452.dkr.ecr.eu-west-1.amazonaws.com/eks/coredns:v1.6.6",
+                                        "imagePullPolicy": "IfNotPresent",
+                                        "livenessProbe": {
+                                            "failureThreshold": 5,
+                                            "httpGet": {
+                                                "path": "/health",
+                                                "port": 8080,
+                                                "scheme": "HTTP"
+                                            },
+                                            "initialDelaySeconds": 60,
+                                            "periodSeconds": 10,
+                                            "successThreshold": 1,
+                                            "timeoutSeconds": 5
+                                        },
+                                        "name": "coredns",
+                                        "ports": [
+                                            {
+                                                "containerPort": 53,
+                                                "name": "dns",
+                                                "protocol": "UDP"
+                                            },
+                                            {
+                                                "containerPort": 53,
+                                                "name": "dns-tcp",
+                                                "protocol": "TCP"
+                                            },
+                                            {
+                                                "containerPort": 9153,
+                                                "name": "metrics",
+                                                "protocol": "TCP"
+                                            }
+                                        ],
+                                        "readinessProbe": {
+                                            "failureThreshold": 3,
+                                            "httpGet": {
+                                                "path": "/health",
+                                                "port": 8080,
+                                                "scheme": "HTTP"
+                                            },
+                                            "periodSeconds": 10,
+                                            "successThreshold": 1,
+                                            "timeoutSeconds": 1
+                                        },
+                                        "resources": {
+                                            "limits": {
+                                                "memory": "170Mi"
+                                            },
+                                            "requests": {
+                                                "cpu": "100m",
+                                                "memory": "70Mi"
+                                            }
+                                        },
+                                        "securityContext": {
+                                            "allowPrivilegeEscalation": false,
+                                            "capabilities": {
+                                                "add": [
+                                                    "NET_BIND_SERVICE"
+                                                ],
+                                                "drop": [
+                                                    "all"
+                                                ]
+                                            },
+                                            "readOnlyRootFilesystem": true
+                                        },
+                                        "terminationMessagePath": "/dev/termination-log",
+                                        "terminationMessagePolicy": "File",
+                                        "volumeMounts": [
+                                            {
+                                                "mountPath": "/etc/coredns",
+                                                "name": "config-volume",
+                                                "readOnly": true
+                                            },
+                                            {
+                                                "mountPath": "/tmp",
+                                                "name": "tmp"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "dnsPolicy": "Default",
+                                "priorityClassName": "system-cluster-critical",
+                                "restartPolicy": "Always",
+                                "schedulerName": "default-scheduler",
+                                "securityContext": {},
+                                "serviceAccount": "coredns",
+                                "serviceAccountName": "coredns",
+                                "terminationGracePeriodSeconds": 30,
+                                "tolerations": [
+                                    {
+                                        "effect": "NoSchedule",
+                                        "key": "node-role.kubernetes.io/master"
+                                    },
+                                    {
+                                        "key": "CriticalAddonsOnly",
+                                        "operator": "Exists"
+                                    }
+                                ],
+                                "volumes": [
+                                    {
+                                        "emptyDir": {},
+                                        "name": "tmp"
+                                    },
+                                    {
+                                        "configMap": {
+                                            "defaultMode": 420,
+                                            "items": [
+                                                {
+                                                    "key": "Corefile",
+                                                    "path": "Corefile"
+                                                }
+                                            ],
+                                            "name": "coredns"
+                                        },
+                                        "name": "config-volume"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "status": {
+                        "availableReplicas": 2,
+                        "fullyLabeledReplicas": 2,
+                        "observedGeneration": 1,
+                        "readyReplicas": 2,
+                        "replicas": 2
+                    }
+                },
+                {
+                    "apiVersion": "extensions/v1beta1",
                     "kind": "DaemonSet",
                     "metadata": {
                         "annotations": {
