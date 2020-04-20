@@ -7,7 +7,7 @@ package dev.eunomia.eks
 
 # a pod of a deployment uses a service account
 uses[{"namespace": ns, "pod": pod, "type": "deployment", "serviceaccount": sa }] {
-  some i,   s
+  some i, j, s
 
   input.rbac[_].items[s].kind == "ServiceAccount"
   sa := input.rbac[_].items[s].metadata.name
@@ -18,17 +18,17 @@ uses[{"namespace": ns, "pod": pod, "type": "deployment", "serviceaccount": sa }]
   input.topology[_].items[i].metadata.namespace == ns
   rs := input.topology[_].items[i].metadata.ownerReferences[_].name
 
-  # input.topology[_].items[j].kind == "ReplicaSet"
-  # input.topology[_].items[j].metadata.name == rs
-  # deploy := input.topology[_].items[j].metadata.ownerReferences[_].name
+  input.topology[_].items[j].kind == "ReplicaSet"
+  input.topology[_].items[j].metadata.name == rs
+  deploy := input.topology[_].items[j].metadata.ownerReferences[_].name
   
-  # input.topology[_].items[k].kind == "Deployment"
-  # input.topology[_].items[k].metadata.name == deploy
-  # input.topology[_].items[k].spec.template.spec.serviceAccountName == sa
+  input.topology[_].items[k].kind == "Deployment"
+  input.topology[_].items[k].metadata.name == deploy
+  input.topology[_].items[k].spec.template.spec.serviceAccountName == sa
 }
 
 # a pod of a daemonset uses a service account
-auses[{"namespace": ns, "owner": ds, "type": "daemonset", "serviceaccount": sa }] {
+uses[{"namespace": ns, "owner": ds, "type": "daemonset", "serviceaccount": sa }] {
   some i, j, s
 
   input.rbac[_].items[s].kind == "ServiceAccount"
