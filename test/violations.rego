@@ -60,7 +60,7 @@ uses[{"namespace": ns, "pod": pod, "owner": sts, "type": "statefulset", "service
   
   input.topology[_].items[j].kind == "StatefulSet"
   input.topology[_].items[j].metadata.name == sts
-  input.topology[_].items[j].spec.template.spec.serviceAccountName == sa
+  input.topology[_].items[j].spec.serviceAccountName == sa
 }
 
 # a (cluster)role binding gives the service account (and with it the app it

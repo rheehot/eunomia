@@ -7,6 +7,14 @@
                     "apiVersion": "v1",
                     "kind": "ServiceAccount",
                     "metadata": {
+                        "name": "mehdb",
+                        "namespace": "sts"
+                    }
+                },
+                {
+                    "apiVersion": "v1",
+                    "kind": "ServiceAccount",
+                    "metadata": {
                         "creationTimestamp": "2020-03-17T12:31:51Z",
                         "labels": {
                             "app.kubernetes.io/instance": "appmesh-controller",
@@ -8098,6 +8106,7 @@
                         "uid": "557397cd-83b0-11ea-ab19-0ee7fc692258"
                     },
                     "spec": {
+                        "serviceAccountName": "mehdb",
                         "podManagementPolicy": "OrderedReady",
                         "replicas": 2,
                         "revisionHistoryLimit": 10,
