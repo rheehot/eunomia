@@ -6,7 +6,7 @@ package dev.eunomia.eks
 # cluster (via RBAC) and what is defined from the AWS services side (IAM)
 
 # a pod of a deployment uses a service account
-uses[{"namespace": ns, "pod": pod, "type": "deployment", "serviceaccount": sa }] {
+uses[{"namespace": ns, "pod": pod, "owner": deploy, "type": "deployment", "serviceaccount": sa }] {
   some i, j, s
 
   input.rbac[_].items[s].kind == "ServiceAccount"
@@ -28,7 +28,7 @@ uses[{"namespace": ns, "pod": pod, "type": "deployment", "serviceaccount": sa }]
 }
 
 # a pod of a daemonset uses a service account
-uses[{"namespace": ns, "owner": ds, "type": "daemonset", "serviceaccount": sa }] {
+uses[{"namespace": ns, "pod": pod, "owner": ds, "type": "daemonset", "serviceaccount": sa }] {
   some i, j, s
 
   input.rbac[_].items[s].kind == "ServiceAccount"
@@ -45,8 +45,26 @@ uses[{"namespace": ns, "owner": ds, "type": "daemonset", "serviceaccount": sa }]
   input.topology[_].items[j].spec.template.spec.serviceAccountName == sa
 }
 
-# a (cluster)role binding gives the service account (and with it the app it)
-# stands for certain permissions as defined by the (cluster)role it references
+# a pod of a statefulset uses a service account
+uses[{"namespace": ns, "pod": pod, "owner": sts, "type": "statefulset", "serviceaccount": sa }] {
+  some i, j, s
+
+  input.rbac[_].items[s].kind == "ServiceAccount"
+  sa := input.rbac[_].items[s].metadata.name
+  ns := input.rbac[_].items[s].metadata.namespace
+
+  input.topology[_].items[i].kind == "Pod"
+  pod := input.topology[_].items[i].metadata.name
+  input.topology[_].items[i].metadata.namespace == ns
+  sts := input.topology[_].items[i].metadata.ownerReferences[_].name
+  
+  input.topology[_].items[j].kind == "StatefulSet"
+  input.topology[_].items[j].metadata.name == sts
+  input.topology[_].items[j].spec.template.spec.serviceAccountName == sa
+}
+
+# a (cluster)role binding gives the service account (and with it the app it
+# stands for) certain permissions as defined by the (cluster)role it references
 permits[{"bindingtype" : rolebindings[rbt], "rolebinding" : rb, "roletype" : roles[rt], "role":  rl, "serviceaccount" : sa}] {
   some i, j, k, l, rbt, rt
   input.rbac[_].items[i].kind == "ServiceAccount"
