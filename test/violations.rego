@@ -5,11 +5,15 @@ package dev.eunomia.eks
 # Access control: what identities and permissions exist in the Kubernetes 
 # cluster (via RBAC) and what is defined from the AWS services side (IAM)
 
-accessgraph[{"namespace": ns, "owner": owner, "ownertype": ownertype , "pod": pod, "roletype": roletype, "role": role }] {
-  
-  uses[{"namespace": ns, "pod": pod, "owner": owner, "type": ownertype , "serviceaccount": sa_uses }]
-  permits[{"bindingtype": bindingtype, "rolebinding": rolebinding, "roletype": roletype, "role": role, "serviceaccount": sa_permits }]
-  sa_uses == sa_permits
+accessgraph[{u,p}] {
+#  uses[{"namespace": ns, "pod": pod, "owner": owner, "type": ownertype , "serviceaccount": sa_uses }]
+#  permits[{"bindingtype": bindingtype, "rolebinding": rolebinding, "roletype": roletype, "role": role, "serviceaccount": sa_permits }]
+#  sa_uses == sa_permits
+  some u, p
+  uses[u]
+  permits[p]
+  u.serviceaccount == p.serviceaccount
+  u.namespace == p.namespace
 }
 
 # a pod of a deployment uses a service account
@@ -72,11 +76,12 @@ uses[{"namespace": ns, "pod": pod, "owner": sts, "type": "statefulset", "service
 
 # a (cluster)role binding gives the service account (and with it the app it
 # stands for) certain permissions as defined by the (cluster)role it references
-permits[{"bindingtype": rolebindings[rbt], "rolebinding": rb, "roletype": roles[rt], "role": rl, "serviceaccount": sa }] {
+permits[{"namespace": ns, "bindingtype": rolebindings[rbt], "rolebinding": rb, "roletype": roles[rt], "role": rl, "serviceaccount": sa }] {
   some i, j, k, l, rbt, rt
   input.rbac[_].items[i].kind == "ServiceAccount"
   sa := input.rbac[_].items[i].metadata.name
-  
+  ns := input.rbac[_].items[i].metadata.namespace
+
   rolebindings := ["RoleBinding", "ClusterRoleBinding"]
   input.rbac[_].items[j].kind == rolebindings[rbt]
   input.rbac[_].items[j].subjects[k].kind == "ServiceAccount"
