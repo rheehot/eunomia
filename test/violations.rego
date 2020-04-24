@@ -5,15 +5,13 @@ package dev.eunomia.eks
 # Access control: what identities and permissions exist in the Kubernetes 
 # cluster (via RBAC) and what is defined from the AWS services side (IAM)
 
-accessgraph[{u,p}] {
-#  uses[{"namespace": ns, "pod": pod, "owner": owner, "type": ownertype , "serviceaccount": sa_uses }]
-#  permits[{"bindingtype": bindingtype, "rolebinding": rolebinding, "roletype": roletype, "role": role, "serviceaccount": sa_permits }]
-#  sa_uses == sa_permits
+# show access graph
+accessgraph[{"namespace": u.namespace, "owner": u.owner, "type": u.type, "pod": u.pod, "roletype": p.roletype, "role": p.role }] {
   some u, p
   uses[u]
   permits[p]
   u.serviceaccount == p.serviceaccount
-  u.namespace == p.namespace
+  u.namespace == p.namespace 
 }
 
 # a pod of a deployment uses a service account
