@@ -74,21 +74,21 @@ uses[{"namespace": ns, "pod": pod, "owner": sts, "type": "statefulset", "service
 
 # a (cluster)role binding gives the service account (and with it the app it
 # stands for) certain permissions as defined by the (cluster)role it references
-permits[{"namespace": ns, "bindingtype": rolebindings[rbt], "rolebinding": rb, "roletype": roles[rt], "role": rl, "serviceaccount": sa }] {
-  some i, j, k, l, rbt, rt
-  input.rbac[_].items[i].kind == "ServiceAccount"
-  sa := input.rbac[_].items[i].metadata.name
-  ns := input.rbac[_].items[i].metadata.namespace
+permits[{"namespace": ns, "bindingtype": rolebindings[rbt], "rolebinding": rb, "roletype": roles[rt], "role": role, "serviceaccount": sa }] {
+  some ri, rj, i, j, k, l, rbt, rt
+  input.rbac[ri].items[i].kind == "ServiceAccount"
+  sa := input.rbac[ri].items[i].metadata.name
+  ns := input.rbac[ri].items[i].metadata.namespace
 
   rolebindings := ["RoleBinding", "ClusterRoleBinding"]
-  input.rbac[_].items[j].kind == rolebindings[rbt]
-  input.rbac[_].items[j].subjects[k].kind == "ServiceAccount"
-  input.rbac[_].items[j].subjects[k].name == sa
-  rb := input.rbac[_].items[j].metadata.name
+  input.rbac[rj].items[j].kind == rolebindings[rbt]
+  input.rbac[rj].items[j].subjects[k].kind == "ServiceAccount"
+  input.rbac[rj].items[j].subjects[k].name == sa
+  rb := input.rbac[rj].items[j].metadata.name
 
   roles := ["Role", "ClusterRole"]
-  input.rbac[_].items[l].kind == roles[rt]
-  rl := input.rbac[_].items[l].metadata.name
+  input.rbac[rl].items[l].kind == roles[rt]
+  role := input.rbac[rl].items[l].metadata.name
 }
 
 
